@@ -1,4 +1,4 @@
-const executeInstruction = (data) => {
+export const executeInstruction = (data) => {
   
   let i = 0;
   while (i < data.length) {
@@ -15,12 +15,14 @@ const executeInstruction = (data) => {
 
 const part1 = (input) => {
   const data = input.slice();
+  // data[1] = 64;
+  // data[2] = 21;
   data[1] = 12;
   data[2] = 2;
   return executeInstruction(data);
 };
 
-const input = [
+export const input = [
   1,0,0,3,1,1,2,3,1,3,4,3,1,5,0,3,2,13,1,19
   ,1,19,10,23,2,10,23,27,1,27,6,31,1,13,31,
   35,1,13,35,39,1,39,10,43,2,43,13,47,1,47,
