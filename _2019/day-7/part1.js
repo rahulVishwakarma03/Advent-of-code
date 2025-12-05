@@ -50,10 +50,11 @@ const mul = (
 };
 
 const takeInput = (data, input, output, { p1Mode }, { p1Idx }) => {
-  // const input = prompt("Enter input : ");
   const operand1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
   data[operand1Index] = input[0];
+  // console.log(data[operand1Index],input[0]);
   input[0] = output[0];
+  console.log(data[operand1Index],output[0]);
   // data[operand1Index] = 8;
   return p1Idx + 1;
 };
@@ -61,8 +62,9 @@ const takeInput = (data, input, output, { p1Mode }, { p1Idx }) => {
 const displayOutput = (data, i, output, { p1Mode }, { p1Idx }) => {
   const operand1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
   output[0] = data[operand1Index];
-  // console.log(output[0]);
-  return p1Idx + 1;
+  // console.log(output[0],p1Idx-1);
+  // return p1Idx + 1;
+  return -2;
 };
 
 const jumpIfTrue = (data, i, o, { p1Mode, p2Mode }, { p1Idx, p2Idx }) => {
@@ -71,6 +73,7 @@ const jumpIfTrue = (data, i, o, { p1Mode, p2Mode }, { p1Idx, p2Idx }) => {
 
   if (data[param1Index] !== 0) {
     return data[param2Index];
+    // return param2Index;
   }
 
   return p1Idx + 2;
@@ -82,6 +85,7 @@ const jumpIfFalse = (data, i, o, { p1Mode, p2Mode }, { p1Idx, p2Idx }) => {
 
   if (data[param1Index] === 0) {
     return data[param2Index];
+    // return param2Index;
   }
 
   return p1Idx + 2;
@@ -133,11 +137,15 @@ const operations = {
   },
 };
 
-export const executeInstruction = (data, input, output) => {
-  let i = 0;
+export const executeInstruction = (data, input, output, [ampStartIndex,sequence]) => {
+  // const phase = sequence;
+  // console.log(ampStartIndex[sequence])
+  let i = 0 + ampStartIndex[sequence];
   while (i >= 0 && i < data.length) {
+    // if (phase === 9) {
+      // console.log(phase, i,input, output, data);
+    // }
     const { opcode, ...modes } = parseOpcodeAndModes(data[i]);
-    // console.log(opcode, i);
     const nextIndex = operations[opcode](
       data,
       input,
@@ -145,12 +153,9 @@ export const executeInstruction = (data, input, output) => {
       modes,
       { p1Idx: i + 1, p2Idx: i + 2, p3Idx: i + 3 },
     );
-    // console.log(data,output,i,opcode);
-    // if (nextIndex === -1) {
-    //   return;
-    // }
+
+    ampStartIndex[sequence] = i + 2;
     i = nextIndex;
-    // console.log(i);
   }
   return i;
 };
@@ -161,10 +166,10 @@ const part1 = (input) => {
   const allOutputSignals = [];
   phaseSettingSequence.map((sequence) => {
     const output = [0];
+
     sequence.forEach((input) => {
       executeInstruction(data, [input], output);
     });
-    // console.log(output);
     allOutputSignals.push(output[0]);
   });
   return Math.max(...allOutputSignals);
@@ -186,42 +191,3 @@ const part1 = (input) => {
 // console.log(part1(input));
 
 // console.log(permutations([1,2,3]))
-
-
-
-const part2 = (input) => {
-  const data = input.slice();
-  // const phaseSettingSequence = permutations([5, 6, 7, 8, 9]);
-  // const allOutputSignals = [];
-  // phaseSettingSequence.map((sequence) => {
-  //   const output = [0];
-  //   sequence.forEach((input) => {
-  //     console.log(executeInstruction(data, [input], output))
-  //     // console.log(output);
-        
-  //   });
-  //   allOutputSignals.push(output[0]);
-  // });
-  const sequence = [9,8,7,6,5];
-  const output = [0];
-  let count = 0;
-  let i = 0;
-  while (true) {
-    count++
-    const result = executeInstruction(data, [sequence[i]], output);
-    if (result === -1) {
-      // allOutputSignals.push(output[0]);
-      return [output,count];
-    }
-    i = (i + 1) % 5;
-  }
-  // return output;
-  
-  // return Math.max(...allOutputSignals);
-};
-
-console.log(part2([3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,
-27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5]));
-
-
-// console.log(part2(input4))
