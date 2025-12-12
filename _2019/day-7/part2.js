@@ -1,4 +1,3 @@
-
 import { input } from "./input.js";
 import { permutations } from "jsr:@std/collections";
 
@@ -21,98 +20,70 @@ const operandsBasedOnMode = {
 const add = (
   data,
   amplifier,
-  { p1Mode, p2Mode, p3Mode },
   { p1Idx, p2Idx, p3Idx },
+  currentIndex,
 ) => {
-  const operand1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
-  const operand2Index = operandsBasedOnMode[p2Mode](data, p2Idx);
-  const operand3Index = operandsBasedOnMode[p3Mode](data, p3Idx);
-
-  data[operand3Index] = data[operand1Index] + data[operand2Index];
-  return p1Idx + 3;
+  data[p3Idx] = data[p1Idx] + data[p2Idx];
+  return currentIndex + 4;
 };
 
 const mul = (
   data,
   amplifier,
-  { p1Mode, p2Mode, p3Mode },
   { p1Idx, p2Idx, p3Idx },
+  currentIndex,
 ) => {
-  const operand1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
-  const operand2Index = operandsBasedOnMode[p2Mode](data, p2Idx);
-  const operand3Index = operandsBasedOnMode[p3Mode](data, p3Idx);
-
-  data[operand3Index] = data[operand1Index] * data[operand2Index];
-  return p1Idx + 3;
+  data[p3Idx] = data[p1Idx] * data[p2Idx];
+  return currentIndex + 4;
 };
 
-const takeInput = (data, amplifier, { p1Mode }, { p1Idx }) => {
-  const operand1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
-  data[operand1Index] = amplifier.input;
+const takeInput = (data, amplifier, { p1Idx }, currentIndex) => {
+  data[p1Idx] = amplifier.input;
   amplifier.input = amplifier.output;
-  return p1Idx + 1;
+  return currentIndex + 2;
 };
 
-const displayOutput = (data, amplifier, { p1Mode }, { p1Idx }) => {
-  const operand1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
-  amplifier.output = data[operand1Index];
-  // console.log(output[0],p1Idx-1);
-  // return p1Idx + 1;
+const displayOutput = (data, amplifier, { p1Idx }) => {
+  amplifier.output = data[p1Idx];
   return -2;
 };
 
-const jumpIfTrue = (data, amplifier, { p1Mode, p2Mode }, { p1Idx, p2Idx }) => {
-  const param1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
-  const param2Index = operandsBasedOnMode[p2Mode](data, p2Idx);
-
-  if (data[param1Index] !== 0) {
-    return data[param2Index];
-    // return param2Index;
+const jumpIfTrue = (data, amplifier, { p1Idx, p2Idx }, currentIndex) => {
+  if (data[p1Idx] !== 0) {
+    return data[p2Idx];
   }
 
-  return p1Idx + 2;
+  return currentIndex + 3;
 };
 
-const jumpIfFalse = (data, amplifier, { p1Mode, p2Mode }, { p1Idx, p2Idx }) => {
-  const param1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
-  const param2Index = operandsBasedOnMode[p2Mode](data, p2Idx);
-
-  if (data[param1Index] === 0) {
-    return data[param2Index];
-    // return param2Index;
+const jumpIfFalse = (data, amplifier, { p1Idx, p2Idx }, currentIndex) => {
+  if (data[p1Idx] === 0) {
+    return data[p2Idx];
   }
 
-  return p1Idx + 2;
+  return currentIndex + 3;
 };
 
 const lessThan = (
   data,
   amplifier,
-  { p1Mode, p2Mode, p3Mode },
   { p1Idx, p2Idx, p3Idx },
+  currentIndex,
 ) => {
-  const param1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
-  const param2Index = operandsBasedOnMode[p2Mode](data, p2Idx);
-  const param3Index = operandsBasedOnMode[p3Mode](data, p3Idx);
+  data[p3Idx] = data[p1Idx] < data[p2Idx] ? 1 : 0;
 
-  data[param3Index] = data[param1Index] < data[param2Index] ? 1 : 0;
-
-  return p1Idx + 3;
+  return currentIndex + 4;
 };
 
 const equals = (
   data,
   amplifier,
-  { p1Mode, p2Mode, p3Mode },
   { p1Idx, p2Idx, p3Idx },
+  currentIndex,
 ) => {
-  const param1Index = operandsBasedOnMode[p1Mode](data, p1Idx);
-  const param2Index = operandsBasedOnMode[p2Mode](data, p2Idx);
-  const param3Index = operandsBasedOnMode[p3Mode](data, p3Idx);
+  data[p3Idx] = data[p1Idx] === data[p2Idx] ? 1 : 0;
 
-  data[param3Index] = data[param1Index] === data[param2Index] ? 1 : 0;
-
-  return p1Idx + 3;
+  return currentIndex + 4;
 };
 
 const operations = {
@@ -130,19 +101,22 @@ const operations = {
   },
 };
 
-export const executeInstruction = (amplifier) => {
+export const executeInstructions = (amplifier) => {
   if (amplifier.isHalt) {
     return;
   }
   const data = amplifier.data;
   let i = 0 + amplifier.index;
   while (i >= 0 && i < data.length) {
-    const { opcode, ...modes } = parseOpcodeAndModes(data[i]);
+    const { opcode, p1Mode, p2Mode, p3Mode } = parseOpcodeAndModes(data[i]);
+    const param1Index = operandsBasedOnMode[p1Mode](data, i + 1);
+    const param2Index = operandsBasedOnMode[p2Mode](data, i + 2);
+    const param3Index = operandsBasedOnMode[p3Mode](data, i + 3);
     const nextIndex = operations[opcode](
       data,
       amplifier,
-      modes,
-      { p1Idx: i + 1, p2Idx: i + 2, p3Idx: i + 3 },
+      { p1Idx: param1Index, p2Idx: param2Index, p3Idx: param3Index },
+      i,
     );
 
     amplifier.index = i + 2;
@@ -167,18 +141,12 @@ const createAmp = (data, sequence) => {
 const isAllAmpHalted = (amplifiers) =>
   amplifiers.every((amp) => amp.isHalt === true);
 
-
-const part2 = (input) => {
-  const data = input.slice();
-
-  const phaseSettingSequence = permutations([5, 6, 7, 8, 9]);
-  
+const executeAmplifiers = (phaseSettingSequence, data) => {
   const allOutputSignals = phaseSettingSequence.map((sequence) => {
     const amplifiers = createAmp(data, sequence);
 
     amplifiers.forEach((amp, i) => {
-      executeInstruction(amp);
-      console.log(amp.phase, amp.input, amp.output, amp.isHalt);
+      executeInstructions(amp);
       amplifiers[(i + 1) % 5].output = amp.output;
     });
 
@@ -187,19 +155,21 @@ const part2 = (input) => {
       if (isAllAmpHalted(amplifiers)) {
         return amplifiers[i].output;
       }
-      console.log(
-        amplifiers[i].phase,
-        amplifiers[i].output,
-        amplifiers[i].isHalt,
-      );
       amplifiers[i].input = amplifiers[i].output;
-      executeInstruction(amplifiers[i]);
+      executeInstructions(amplifiers[i]);
       amplifiers[(i + 1) % 5].output = amplifiers[i].output;
       i = (i + 1) % 5;
     }
   });
-  // console.log(amplifiers[4].output)
   return Math.max(...allOutputSignals);
+};
+
+const part2 = (input) => {
+  const data = input.slice();
+
+  const phaseSettingSequence = permutations([5, 6, 7, 8, 9]);
+
+  return executeAmplifiers(phaseSettingSequence, data);
 };
 
 console.log(part2(input));
