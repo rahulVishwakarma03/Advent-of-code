@@ -8,16 +8,18 @@ const rotateDial = (rotations, initialPosition) => {
   let countZero = 0;
   let currentPosition = initialPosition;
   rotations.forEach(({ rotation, distance }) => {
-    // const prev = currentPosition;
-    // currentPosition = (currentPosition + delta[rotation] * distance + 100) %
-    //   100;
-    // countZero += Math.floor(distance/100);
-    // countZero += currentPosition === 0 || (prev !== 0 && (currentPosition - delta[rotation] * (distance % 100)) !== prev) ? 1 : 0;
-    // // console.log(prev, currentPosition, countZero);
-    for(let i =1; i<=distance; i++) {
-      currentPosition = (currentPosition + delta[rotation]) % 100;
-      if(currentPosition === 0) countZero++;
-    }
+    const prev = currentPosition;
+    currentPosition =
+      (currentPosition + delta[rotation] * (distance % 100) + 100) %
+      100;
+    countZero += Math.floor(distance / 100);
+    countZero +=
+      currentPosition === 0 ||
+        (prev !== 0 &&
+          (currentPosition - delta[rotation] * (distance % 100)) !== prev)
+        ? 1
+        : 0;
+    console.log(prev, delta[rotation] * distance, currentPosition, countZero);
   });
   return countZero;
 };
