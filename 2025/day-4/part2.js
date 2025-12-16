@@ -29,29 +29,33 @@ const isAccessible = (grid, row, col) => {
   return countRolls < 4;
 }
 
-const accessRollsOfPaper = (grid) => {
-  const accessedRolls = [];
+const generateAccessibleRolls = function* (grid) {
   
   for(let row = 0; row < grid.length; row++){
     for(let col = 0; col < grid[0].length; col++) {
       if(grid[row][col] === "@" && isAccessible(grid, row, col)) {
-        accessedRolls.push({x:col, y:row});
+        yield {x:col,y:row};
       }
     }
   }
-  return accessedRolls;
 }
 
 const removeRollsOfPaper = (grid) => {
-  const rollsPositionToBeRemoved = accessRollsOfPaper(grid);
-  console.log(rollsPositionToBeRemoved.length);
-  if(rollsPositionToBeRemoved.length === 0) return 0;
-  const totalRollsToBeRemoved = rollsPositionToBeRemoved.length;
-
-  rollsPositionToBeRemoved.forEach(({x,y}) => {
-    grid[y][x] = '.';
-  })
-  return totalRollsToBeRemoved + removeRollsOfPaper(grid);
+  let deletedRollsCount = 0;
+  const rollsIterator = generateAccessibleRolls(grid);
+  const {value, done} = rollsIterator.next();
+  let position = value;
+  let isDone = done;
+  
+  while(!isDone) {
+    deletedRollsCount++;
+    grid[position.y][position.x] = '.';
+    const {value, done} = rollsIterator.next();
+    position = value;
+    isDone = done;
+  }
+    if(deletedRollsCount === 0) return 0;
+  return deletedRollsCount + removeRollsOfPaper(grid)
 }
 
 const part2 = (puzzleInput) => {
